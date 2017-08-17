@@ -1,10 +1,10 @@
-# Full-gradient descend ANN model with 'relu' activation function. 
+# Stochastic gradient descend ANN model with 'relu' activation function. 
 # Implemented from scratch (using mainly Numpy).
 # P.S: It can take very long time to run depending if the majority of the 
 # dataset is used for training.
 import numpy as np
 import matplotlib.pyplot as plt
-from ANN_relu_Multi import ANN_relu
+from ANN_relu_Multi_SGD import ANN_relu
 from sklearn.utils import shuffle
 
 
@@ -59,7 +59,7 @@ def main():
 
     # save the model object to a file
     from sklearn.externals import joblib
-    joblib.dump(model, 'fer_ANN_relu.sav')
+    joblib.dump(model, 'fer_ANN_relu_SGD.sav')
     
     # import pickle
     # pickle.dump(model, open('ANN_relu.sav', 'wb'))
