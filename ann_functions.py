@@ -30,14 +30,14 @@ def cross_entropy_bin(T, pY):
 # defines the cross-entropy cost function for multiclass
 def cross_entropy_multi(T, pY):
 	N = len(T)
-	return 1/N*(T*np.log(pY)).sum()
+	return -1/N*(T*np.log(pY)).sum()
 
 
 # same as 'cross_entropy_multi' but cost computation is faster when 
 # dealing with large datasets
 def cross_entropy_multi2(T, pY):	
 	N = len(T)
-	return 1/N*np.log(pY[np.arange(N), np.argmax(T, axis=1)]).sum()
+	return -1/N*np.log(pY[np.arange(N), np.argmax(T, axis=1)]).sum()
 
 
 # defines the residual squares sum cost function for regression 
