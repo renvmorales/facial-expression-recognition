@@ -36,7 +36,7 @@ def getData(balance_ones=True):
 
     X, Y = shuffle(X, Y)
     # selects only the last 1000 samples
-    Xvalid, Yvalid = X[-2000:], Y[-2000:] 
+    Xvalid, Yvalid = X[-4000:], Y[-4000:] 
 
     return Xvalid, Yvalid
 
@@ -50,7 +50,7 @@ def main():
     model = ANN_relu([100,100,100,100])
     # model = ANN_relu([200,200,200])
     # model.fit(X, Y, learning_rate=1*10e-7, epochs=10000, reg=0, show_fig=True)
-    model.fit(X, Y, alpha=1e-6, epochs=20000, reg=1e-2, show_fig=True)
+    model.fit(X, Y, alpha=1e-6, epochs=10000, reg=1e-2, show_fig=True)
     # # print('The total score is: ', model.score(X, Y))
     Ypred = model.predict(X)
     print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))

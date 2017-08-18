@@ -36,7 +36,7 @@ def getData(balance_ones=True):
 
     X, Y = shuffle(X, Y)
     # selects only the last 1000 samples
-    Xvalid, Yvalid = X[-2000:], Y[-2000:] 
+    Xvalid, Yvalid = X[-4000:], Y[-4000:] 
 
     return Xvalid, Yvalid
 
