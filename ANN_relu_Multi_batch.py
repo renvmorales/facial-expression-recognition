@@ -1,3 +1,6 @@
+# Batch GD optimization for ANN models using 'relu' activation function 
+# for multi-class problems.
+# Implementation from scratch (mainly using Numpy).
 import numpy as np
 import matplotlib.pyplot as plt
 from  ann_functions import *
@@ -7,17 +10,24 @@ from sklearn.utils import shuffle
 
 class ANN_relu(object):
 	def __init__(self, M):
+		# this assures that all hidden unities are stored in a list
 		if isinstance(M, int):
-			self.M = [M]
+			self.M = [M]  # in case there is a single hidden layer...
 		else:
 			self.M = M
 
 
+
 	def fit(self, X, Y, alpha=1e-6, reg=1e-4, epochs=5000, 
-		show_fig=False):
+		show_fig=False):		
 		N, D = X.shape
 		K = len(np.unique(Y))
-		self.N = N  # this variable will be useful for normalization later
+
+		self.N = N  # this variable will be used for normalization
+		self.D = D  # store the dimension of the training dataset
+		# stores all hyperparameter values
+		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'epochs':epochs}
+		
 
 		# creates an indicator matrix for the target
 		Trgt = np.zeros((N, K))
@@ -35,42 +45,49 @@ class ANN_relu(object):
 			self.b.append(b)
 
 
-		start = time.time()
-		J = np.zeros(epochs)
-		Ns = 500	# number of samples / batch
-		Nbat = N/Ns  # number of batches
+		Ns = 100	# number of samples / batch
+		Nbatch = 10#N/Ns  # number of batches
+		J = np.zeros(epochs) # this array stores the cost with respect to each epoch
+		start = time.time()	# <-- starts measuring the optimization time from this point on...	
 
-		for i in range(epochs):
+		for i in range(epochs):  # optimization loop
 			Xbuf, Ybuf = shuffle(X,Y)
-			for j in range(int(Nbat)):
-				Xs = Xbuf[(j*Ns):(j*Ns+Ns)]
+			for j in range(int(Nbatch)):
+				Xs = Xbuf[(j*Ns):(j*Ns+Ns),:] # input batch sample
 				Trgt_s = np.zeros((Ns,K))
 				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
-				# Trgt_s = Trgt[(j*Ns):(j*Ns+Ns)]
 				PY = self.forward(Xs)
 				J[i] = J[i] + cross_entropy_multi2(Trgt_s, PY)
 				self.back_prop(Trgt_s, PY, alpha, reg)
-			J[i] = J[i]/Nbat # computes the mean cost value
 			if i % 100 == 0:
 				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 
-					" Accuracy: {:1.4f}".format(np.mean(Y==np.argmax(self.forward(X),axis=1))))
+					" Accuracy: {:1.4f}".format(np.mean(Y==self.predict(X))))
+
 
 		end = time.time()
-		print('\nOptimization complete')
-		print('\nElapsed time: {:.3f} min'.format((end-start)/60))
+		self.elapsed_t = (end-start)/60 # total elapsed time
+		self.cost = J # stores all cost values
+		self.Ns = Ns
+		self.Nbatch = Nbatch
 
-		if show_fig:
+		print('\nOptimization complete')
+		print('\nElapsed time: {:.3f} min'.format(self.elapsed_t))
+
+
+		# customized plot with the resulting cost values
+		if show_fig: 
 			plt.plot(J, label='Cost function J')
-			plt.title('Evolution of the Cost through a Batch GD optimization     Total runtime: {:.2f} min'.format((end-start)/60)+'    Final Accuracy: {:.2f}'.format(np.mean(Y==np.argmax(self.forward(X),axis=1))))
+			plt.title('Evolution of the Cost through a Batch GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
 			plt.xlabel('Epochs')
-			plt.ylabel('Cost value')
+			plt.ylabel('Cost')
 			plt.legend()
 			plt.show()
 	
 
 
+
 	def forward(self, X):
-		self.Z = [X] # this will contain all hidden unities + output
+		self.Z = [X] # this list contains all hidden unities + input/output
 		for i in range(0,len(self.M)):
 			self.Z.append(forward_step_relu(self.Z[i], self.W[i], self.b[i]))
 		self.Z.append(forward_step(self.Z[len(self.M)], self.W[len(self.M)], self.b[len(self.M)]))
@@ -86,8 +103,8 @@ class ANN_relu(object):
 		for i in range(1,len(self.W)+1):
 			self.W[-i] -= alpha * (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
 			self.b[-i] -= alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
-			dZ = dZ.dot(Wbuf[-i].T) * 0.5*(1+np.sign(Z[-i]))
-			# dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
+			# dZ = dZ.dot(Wbuf[-i].T) * 0.5*(1+np.sign(Z[-i]))
+			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
 
 
@@ -97,8 +114,8 @@ class ANN_relu(object):
 
 
 def main():
-# number of samples for each binary class
-	N_class = 1000 
+# number of samples for each class
+	N_class = 5000 
 
 # generates random 2-D points 
 	X1 = np.random.randn(N_class,2)+np.array([2,2])
@@ -116,13 +133,17 @@ def main():
 	plt.scatter(X[:,0],X[:,1],c=Y,s=50,alpha=0.5)
 	plt.show()
 
+
 # creates an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
+
 # fits the model with the hyperparameters set	
 	model.fit(X, Y, alpha=1e-5, epochs=10000, reg=0.01, show_fig=True)
 	
+# computes the model accuracy	
 	Ypred = model.predict(X)
 	print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))
+
 
 
 
