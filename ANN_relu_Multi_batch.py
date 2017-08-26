@@ -57,7 +57,7 @@ class ANN_relu(object):
 				Trgt_s = np.zeros((Ns,K))
 				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
 				PY = self.forward(Xs)
-				J[i] = J[i] + cross_entropy_multi2(Trgt_s, PY)
+				J[i] = J[i] + 1/Nbatch*cross_entropy_multi2(Trgt_s, PY)
 				self.back_prop(Trgt_s, PY, alpha, reg)
 			if i % 100 == 0:
 				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 

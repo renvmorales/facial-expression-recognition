@@ -1,5 +1,5 @@
 # Plain momentum batch gradient descend ANN model using a 'relu' 
-# activation function for the facial recognition dataset.
+# activation function for the ICML 2013 facial recognition dataset.
 # P.S: It can take very long time to run depending if the majority of the 
 # dataset is used for training.
 import numpy as np

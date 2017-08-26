@@ -1,5 +1,5 @@
-# Standard gradient descend ANN model with 'relu' activation function. 
-# Implemented from scratch (using mainly Numpy).
+# Standard gradient descend ANN model with 'relu' activation function for 
+# the ICML 2013 facial recognition dataset.
 # P.S: It can take very long time to run depending if the majority of the 
 # dataset is used for training.
 import numpy as np
