@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ANN_relu_Multi_batch2 import ANN_relu
 from sklearn.externals import joblib
-from sampling_data import getData
+from preprocess_data import getData
 
 
 
@@ -42,7 +42,7 @@ def main():
             N = len(Y)
             j = np.random.choice(N)
             plt.imshow(X[j].reshape(48, 48), cmap='gray')
-            plt.title('True type: '+label_map[Y[j]]+'  '+'Model output: '+label_map[Ypred[j]])
+            plt.title('True type: '+label_map[Y[j]]+'  |  '+'Model output: '+label_map[Ypred[j]])
             plt.show()
         prompt = input('Quit? Enter Y:\n')
         if prompt == 'Y': # if user decides to stop the display every 7 images 

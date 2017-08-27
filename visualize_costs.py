@@ -1,6 +1,9 @@
+# Plots the resulting cost for different optimization schemes.
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.externals import joblib
+
+
 
 
 
@@ -23,15 +26,26 @@ def main():
 	cost3 = model3.cost
 
 
+# Stochastic results are too noisy so the visualization isn't good...
+# 	from ANN_relu_Multi_SGD import ANN_relu
+# # loades Stochastic GD ANN_relu model
+# 	model4 = joblib.load('fer_ANN_relu_SGD.sav')
+# 	cost4 = model4.cost
+
+
 	plt.plot(cost1, label='Standard GD')
 	plt.plot(cost2, label='Batch GD')
 	plt.plot(cost3, label='Momentum-batch GD')
+	# plt.plot(cost4, label='Stochastic GD')
+
 
 	plt.legend()
 	plt.xlabel('Epochs')
 	plt.ylabel('Cost value')
 	plt.title('Evolution of the cost using different optimization schemes - ICML 2013 training dataset sample')
 	plt.show()
+
+
 
 if __name__ == '__main__':
     main()
