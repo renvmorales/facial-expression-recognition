@@ -26,6 +26,13 @@ def main():
 	cost3 = model3.cost
 
 
+	from ANN_relu_Multi_batch3 import ANN_relu
+# loades Nesterov Momentum-batch GD ANN_relu model
+	model4 = joblib.load('fer_ANN_relu_batch3.sav')
+	cost4 = model4.cost
+
+
+
 # Stochastic results are too noisy so the visualization isn't good...
 # 	from ANN_relu_Multi_SGD import ANN_relu
 # # loades Stochastic GD ANN_relu model
@@ -36,6 +43,7 @@ def main():
 	plt.plot(cost1, label='Standard GD')
 	plt.plot(cost2, label='Batch GD')
 	plt.plot(cost3, label='Momentum-batch GD')
+	plt.plot(cost4, label='Nesterov momentum')
 	# plt.plot(cost4, label='Stochastic GD')
 
 
