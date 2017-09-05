@@ -2,7 +2,7 @@
 # output model 'state of mind' classification.
 import numpy as np
 import matplotlib.pyplot as plt
-from ANN_relu_Multi_batch2 import ANN_relu
+import ANN_relu_Multi_batch3_RMSprop
 from sklearn.externals import joblib
 from preprocess_data import getData
 
@@ -11,7 +11,7 @@ from preprocess_data import getData
 
 def main():
 # this code loades the model 
-    model = joblib.load('fer_ANN_relu_batch2.sav')
+    model = joblib.load('fer_ANN_relu_batch3train_RMSprop.sav')
 
 
 # a mapping list for each face recognition type
@@ -19,9 +19,10 @@ def main():
 
 
 # load the previous samples to visualize some images
-    npzfile = np.load('fer_sample.npz')
-    X = npzfile['X']
-    Y = npzfile['Y']
+    npzfile = np.load('fer_sample2test.npz')
+    X = npzfile['Xtest']
+    Y = npzfile['Ytest']
+
 
 # you can also load all the original data and check if the accuracy 
 # is still the same... 
@@ -31,6 +32,11 @@ def main():
 
 # get the prediction for this model
     Ypred = model.predict(X)
+
+
+# computes the model accuracy
+    print('\nModel accuracy:{:.3f}'.format(np.mean(Y==Ypred)))
+    print('\n')
 
 
 

@@ -1,11 +1,12 @@
-# Standard gradient descent used for training a 'relu' ANN model on the 
-# ICML 2013 facial recognition dataset.
+# Nesterov momentum batch gradient descent with exponential learning rate
+# decay used for training a 'relu' ANN model on the ICML 2013 facial 
+# recognition dataset.
 # 
-# P.S: It can take very long time to run depending on the training 
+# P.S: It can take very long time to run depending on the training  
 # dataset size.
 import numpy as np
 import matplotlib.pyplot as plt
-from ANN_relu_Multi import ANN_relu
+from ANN_relu_Multi_batch3_expdecay import ANN_relu
 
 
 
@@ -23,15 +24,16 @@ def main():
     print('\n')
 
 
+
 # create the ANN model with a specific number of hidden layers/unities
     model = ANN_relu([100,100,100,100])
-    
 
-# train the model with a hyperparameters setting    
-    model.fit(X, Y, alpha=1e-6, epochs=10000, reg=0.01, show_fig=True)
-    
 
-# compute the prediciton/accuracy based on input data    
+# train the model with a hyperparameters setting
+    model.fit(X, Y, alpha=1e-5, epochs=10000, reg=1e-2, mu=0.9, show_fig=True)
+
+
+# compute the prediciton/accuracy based on input data
     Ypred = model.predict(X)
     print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))
 
@@ -39,10 +41,10 @@ def main():
 
 # save the model object to a file
     from sklearn.externals import joblib
-    joblib.dump(model, 'ANN_relu.sav')
+    joblib.dump(model, 'ANN_relu_batch3_expdecay.sav')
     
- 
- 
+
+
 
 
 

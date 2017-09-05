@@ -1,11 +1,14 @@
-# Batch GD optimization for ANN models using 'relu' activation function 
-# for multi-class problems.
+# This API implements the following tasks:
+#  - Multi-layer 'relu' ANN models for multiclass problems
+#  - Batch GD optimization 
+# 
 # Implementation from scratch (mainly using Numpy).
 import numpy as np
 import matplotlib.pyplot as plt
 from  ann_functions import *
 import time
 from sklearn.utils import shuffle
+
 
 
 class ANN_relu(object):
@@ -117,7 +120,7 @@ def main():
 # number of samples for each class
 	N_class = 5000 
 
-# generates random 2-D points 
+# generate random 2-D points 
 	X1 = np.random.randn(N_class,2)+np.array([2,2])
 	X2 = np.random.randn(N_class,2)+np.array([-2,-2])
 	X3 = np.random.randn(N_class,2)+np.array([-2,2])
@@ -134,13 +137,15 @@ def main():
 	plt.show()
 
 
-# creates an ANN model with the specified 4 hidden layers
+# create an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
-# fits the model with the hyperparameters set	
+
+# fit the model with the hyperparameters set	
 	model.fit(X, Y, alpha=1e-5, epochs=10000, reg=0.01, show_fig=True)
 	
-# computes the model accuracy	
+
+# compute the model accuracy	
 	Ypred = model.predict(X)
 	print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))
 

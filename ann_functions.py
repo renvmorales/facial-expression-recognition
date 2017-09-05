@@ -24,7 +24,8 @@ def softmax(a):
 
 # defines the cross-entropy cost function for binary classification
 def cross_entropy_bin(T, pY):
-	return (T*np.log(pY) + (1-T)*np.log(1-pY)).sum()
+	N = len(T)
+	return -1/N*(T*np.log(pY) + (1-T)*np.log(1-pY)).sum()
 
 
 # defines the cross-entropy cost function for multiclass

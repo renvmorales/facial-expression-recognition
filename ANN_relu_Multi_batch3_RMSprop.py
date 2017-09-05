@@ -1,13 +1,13 @@
 # This API implements the following tasks:
 #  - Multi-layer 'relu' ANN models for multiclass problems
-#  - Standard GD optimization 
+#  - Batch GD optimization using Nesterov momentum and RMSprop
 # 
 # Implementation from scratch (mainly using Numpy).
 import numpy as np
 import matplotlib.pyplot as plt
 from  ann_functions import *
 import time
-
+from sklearn.utils import shuffle
 
 
 class ANN_relu(object):
@@ -20,7 +20,7 @@ class ANN_relu(object):
 
 
 
-	def fit(self, X, Y, alpha=1e-6, reg=1e-4, epochs=5000, 
+	def fit(self, X, Y, alpha=1e-6, reg=1e-4, mu=0.8, epochs=5000, 
 		show_fig=False):		
 		N, D = X.shape
 		K = len(np.unique(Y))
@@ -30,6 +30,7 @@ class ANN_relu(object):
 		# stores all hyperparameter values
 		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'epochs':epochs}
 		
+
 		# creates an indicator matrix for the target
 		Trgt = np.zeros((N, K))
 		Trgt[np.arange(N), Y.astype(np.int32)] = 1
@@ -39,29 +40,45 @@ class ANN_relu(object):
 		hdn_unties = [D] + self.M + [K]
 		self.W = []
 		self.b = []
+		self.v_W = []
+		self.v_b = []
+		self.cache_W = []
+		self.cache_b = []
 		# initializes all weights randomly
 		for k in range(1,len(self.M)+2):
 			W, b = init_weights(hdn_unties[k-1], hdn_unties[k])
 			self.W.append(W)
 			self.b.append(b)
+			self.v_W.append(0)
+			self.v_b.append(0)
+			self.cache_W.append(0)
+			self.cache_b.append(0)
 
 
-
+		Ns = 100	# number of samples / batch
+		Nbatch = 10#N/Ns  # number of batches
 		J = np.zeros(epochs) # this array stores the cost with respect to each epoch
 		start = time.time()	# <-- starts measuring the optimization time from this point on...	
 
 		for i in range(epochs):  # optimization loop
-			PY = self.forward(X)
-			J[i] = cross_entropy_multi2(Trgt, PY)
-			self.back_prop(Trgt, PY, alpha, reg)
+			Xbuf, Ybuf = shuffle(X,Y)
+			for j in range(int(Nbatch)):
+				Xs = Xbuf[(j*Ns):(j*Ns+Ns),:] # input batch sample
+				Trgt_s = np.zeros((Ns,K))
+				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
+				PY = self.forward(Xs)
+				J[i] = J[i] + 1/Nbatch*cross_entropy_multi2(Trgt_s, PY)
+				self.back_prop(Trgt_s, PY, alpha, reg, mu)
 			if i % 100 == 0:
 				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 
-					" Accuracy: {:1.4f}".format(np.mean(Y==np.argmax(PY,axis=1))))
+					" Accuracy: {:1.4f}".format(np.mean(Y==self.predict(X))))
 
 
 		end = time.time()
 		self.elapsed_t = (end-start)/60 # total elapsed time
-		self.cost = J # stores all cost values 
+		self.cost = J # stores all cost values
+		self.Ns = Ns
+		self.Nbatch = Nbatch
 
 		print('\nOptimization complete')
 		print('\nElapsed time: {:.3f} min'.format(self.elapsed_t))
@@ -70,7 +87,7 @@ class ANN_relu(object):
 		# customized plot with the resulting cost values
 		if show_fig: 
 			plt.plot(J, label='Cost function J')
-			plt.title('Evolution of the Cost through a GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
+			plt.title('Evolution of the Cost through a RMSprop Nesterov batch GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
 			plt.xlabel('Epochs')
 			plt.ylabel('Cost')
 			plt.legend()
@@ -89,14 +106,24 @@ class ANN_relu(object):
 
 
 
-	def back_prop(self, Y, PY, alpha, reg):
+	# updating weights using Nesterov momentum + RMSprop!
+	def back_prop(self, Y, PY, alpha, reg, mu):
 		dZ = PY-Y
 		Z = self.Z[:-1]
-		Wbuf = self.W
+		Wbuf = self.W		
+		eps = 1e-10
+		decay = 0.5
 		for i in range(1,len(self.W)+1):
-			self.W[-i] -= alpha * (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
-			self.b[-i] -= alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
-			# dZ = dZ.dot(Wbuf[-i].T) * 0.5*(1+np.sign(Z[-i]))
+			grad_W = (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
+			self.cache_W[-i] = decay*self.cache_W[-i] + (1-decay)*grad_W**2
+			grad_b = (dZ.sum(axis=0) + reg/self.N*self.b[-i])
+			self.cache_b[-i] = decay*self.cache_b[-i] + (1-decay)*grad_b**2
+			v_Wbuf = self.v_W[-i]
+			self.v_W[-i] = mu*v_Wbuf - alpha*grad_W/(np.sqrt(self.cache_W[-i])+eps)
+			self.W[-i] += -mu*v_Wbuf + (1+mu)*self.v_W[-i]
+			v_bbuf = self.v_b[-i]
+			self.v_b[-i] = mu*v_bbuf - alpha*grad_b/(np.sqrt(self.cache_b[-i])+eps)
+			self.b[-i] += -mu*v_bbuf + (1+mu)*self.v_b[-i]
 			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
 
@@ -106,9 +133,11 @@ class ANN_relu(object):
 		return np.argmax(PY, axis=1)
 
 
+
+
 def main():
 # number of samples for each class
-	N_class = 1000 
+	N_class = 5000 
 
 # generate random 2-D points 
 	X1 = np.random.randn(N_class,2)+np.array([2,2])
@@ -127,12 +156,13 @@ def main():
 	plt.show()
 
 
+
 # create an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
 
 # fit the model with the hyperparameters set	
-	model.fit(X, Y, alpha=1e-5, epochs=10000, reg=0.01, show_fig=True)
+	model.fit(X, Y, alpha=1e-4, epochs=10000, reg=0, mu=.9, show_fig=True)
 	
 
 # compute the model accuracy	
