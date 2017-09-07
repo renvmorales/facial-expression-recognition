@@ -11,7 +11,7 @@ from preprocess_data import getData
 
 def main():
 # this code loades the model 
-    model = joblib.load('fer_ANN_relu_batch3train_RMSprop.sav')
+    model = joblib.load('ANN_relu_batch3_RMSprop.sav')
 
 
 # a mapping list for each face recognition type
@@ -19,7 +19,7 @@ def main():
 
 
 # load the previous samples to visualize some images
-    npzfile = np.load('fer_sample2test.npz')
+    npzfile = np.load('fer2test1k.npz')
     X = npzfile['Xtest']
     Y = npzfile['Ytest']
 
