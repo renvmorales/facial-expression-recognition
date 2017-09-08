@@ -15,8 +15,10 @@ def main():
 
 
 
-##################################################################
-# # This section analyzes general different optimization schemes
+####################################################################
+# # This section analyzes general different optimization schemes when 
+# # considering different variable/adaptive learning rates approaches 
+# # and Nesterov batch GD.
 
 	from ANN_relu_Multi_batch3 import ANN_relu
 # loades Nesterov Momentum batch GD ANN_relu model
