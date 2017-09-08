@@ -22,7 +22,7 @@ def main():
 # plain momentum batch GD.
 
 	from ANN_relu_Multi_batch2 import ANN_relu
-# loades Plain momentum batch GD ANN_relu model
+# load a plain momentum batch GD ANN_relu trained model
 	model1 = joblib.load('ANN_relu_batch2.sav')
 	cost1 = model1.cost
 	print('Model 1 training time: {:.2f} min'.format(model1.elapsed_t), 
@@ -30,7 +30,8 @@ def main():
 
 	
 	from ANN_relu_Multi_batch2_expdecay import ANN_relu
-# loades Plain momentum batch GD ANN_relu model
+# load a plain momentum batch GD with exponential l.r. decay 
+# ANN_relu trained model
 	model2 = joblib.load('ANN_relu_batch2_expdecay.sav')
 	cost2 = model2.cost
 	print('Model 2 training time: {:.2f} min'.format(model2.elapsed_t), 
@@ -38,7 +39,8 @@ def main():
 
 
 	from ANN_relu_Multi_batch2_AdaGrad import ANN_relu
-# loades Plain momentum batch GD ANN_relu model
+# load a plain momentum batch GD with AdaGrad ANN_relu trained 
+# model
 	model3 = joblib.load('ANN_relu_batch2_AdaGrad.sav')
 	cost3 = model3.cost
 	print('Model 3 training time: {:.2f} min'.format(model3.elapsed_t), 
@@ -46,7 +48,8 @@ def main():
 
 
 	from ANN_relu_Multi_batch2_RMSprop import ANN_relu
-# loades Plain momentum batch GD ANN_relu model
+# load a plain momentum batch GD with RMSprop ANN_relu trained
+# model
 	model4 = joblib.load('ANN_relu_batch2_RMSprop.sav')
 	cost4 = model4.cost
 	print('Model 4 training time: {:.2f} min'.format(model4.elapsed_t), 
