@@ -20,7 +20,7 @@ class ANN_relu(object):
 
 
 
-	def fit(self, X, Y, alpha=1e-6, reg=1e-4, epochs=5000, 
+	def fit(self, X, Y, alpha=1e-3, reg=1e-4, epochs=5000, 
 		show_fig=False):		
 		N, D = X.shape
 		K = len(np.unique(Y))
@@ -82,21 +82,19 @@ class ANN_relu(object):
 	def forward(self, X):
 		self.Z = [X] # this list contains all hidden unities + input/output
 		for i in range(0,len(self.M)):
-			self.Z.append(forward_step_relu(self.Z[i], self.W[i], self.b[i]))
-		self.Z.append(forward_step(self.Z[len(self.M)], self.W[len(self.M)], self.b[len(self.M)]))
-		self.Z[-1] = softmax(self.Z[-1])
+			self.Z.append( relu(self.Z[i].dot(self.W[i])+self.b[i]) )
+		self.Z.append(softmax(self.Z[len(self.M)].dot(self.W[len(self.M)])+self.b[len(self.M)]))
 		return self.Z[-1]
 
 
 
 	def back_prop(self, Y, PY, alpha, reg):
-		dZ = PY-Y
+		dZ = (PY-Y)/len(Y)
 		Z = self.Z[:-1]
 		Wbuf = self.W
 		for i in range(1,len(self.W)+1):
 			self.W[-i] -= alpha * (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
 			self.b[-i] -= alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
-			# dZ = dZ.dot(Wbuf[-i].T) * 0.5*(1+np.sign(Z[-i]))
 			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
 
@@ -104,6 +102,8 @@ class ANN_relu(object):
 	def predict(self, X):
 		PY = self.forward(X)
 		return np.argmax(PY, axis=1)
+
+
 
 
 def main():
@@ -117,24 +117,32 @@ def main():
 	X4 = np.random.randn(N_class,2)+np.array([2,-2])
 	X = np.vstack([X1,X2,X3,X4])
 
+
 # labels associated to the input
 	Y = np.array([0]*N_class+[1]*N_class+[2]*N_class+[3]*N_class)
 	# Y = np.reshape(Y, (len(Y),1))
 
 
+# general data information for the training process
+	print('Total input samples:',X.shape[0])
+	print('Data dimension:',X.shape[1])
+	print('Number of output classes:',len(np.unique(Y)))
+	print('\n')
+
+
 # scatter plot of original labeled data
 	plt.scatter(X[:,0],X[:,1],c=Y,s=50,alpha=0.5)
 	plt.show()
-
+	
 
 # create an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
 
 # fit the model with the hyperparameters set	
-	model.fit(X, Y, alpha=1e-5, epochs=10000, reg=0.01, show_fig=True)
-	
+	model.fit(X, Y, alpha=1e-2, epochs=5000, reg=0.01, show_fig=True)
 
+	
 # compute the model accuracy	
 	Ypred = model.predict(X)
 	print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))
