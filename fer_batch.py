@@ -6,6 +6,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ANN_relu_Multi_batch import ANN_relu
+from sklearn.externals import joblib
 
 
 
@@ -25,7 +26,7 @@ def main():
 
     model = ANN_relu([100,100,100,100])
 
-    model.fit(X, Y, alpha=1e-6, epochs=10000, reg=1e-2, show_fig=True)
+    model.fit(X, Y, alpha=1e-3, epochs=5000, reg=0, show_fig=True)
 
     Ypred = model.predict(X)
     print('\nFinal model accuracy: {:.4f}'.format(np.mean(Y==Ypred)))
@@ -33,11 +34,9 @@ def main():
 
 
     # save the model object to a file
-    from sklearn.externals import joblib
     joblib.dump(model, 'ANN_relu_batch.sav')
     
-    # import pickle
-    # pickle.dump(model, open('ANN_relu.sav', 'wb'))
+
 
 
 
