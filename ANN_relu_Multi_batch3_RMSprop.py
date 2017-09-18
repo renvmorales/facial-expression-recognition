@@ -10,6 +10,7 @@ import time
 from sklearn.utils import shuffle
 
 
+
 class ANN_relu(object):
 	def __init__(self, M):
 		# this assures that all hidden unities are stored in a list
@@ -20,15 +21,18 @@ class ANN_relu(object):
 
 
 
-	def fit(self, X, Y, alpha=1e-6, reg=1e-4, mu=0.8, epochs=5000, 
-		show_fig=False):		
+	def fit(self, X, Y, alpha=1e-3, reg=1e-4, mu=0.8, epochs=5000, 
+		show_fig=False, Ns=100, Nbatch=10, decay=0.5):		
 		N, D = X.shape
 		K = len(np.unique(Y))
 
 		self.N = N  # this variable will be used for normalization
 		self.D = D  # store the dimension of the training dataset
+		self.K = K  # output dimension
+
 		# stores all hyperparameter values
-		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'epochs':epochs}
+		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'mu':mu,
+		'epochs':epochs, 'Ns':Ns, 'Nbatch':Nbatch, 'decay':decay}
 		
 
 		# creates an indicator matrix for the target
@@ -55,8 +59,7 @@ class ANN_relu(object):
 			self.cache_b.append(0)
 
 
-		Ns = 100	# number of samples / batch
-		Nbatch = 10#N/Ns  # number of batches
+
 		J = np.zeros(epochs) # this array stores the cost with respect to each epoch
 		start = time.time()	# <-- starts measuring the optimization time from this point on...	
 
@@ -68,7 +71,7 @@ class ANN_relu(object):
 				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
 				PY = self.forward(Xs)
 				J[i] = J[i] + 1/Nbatch*cross_entropy_multi2(Trgt_s, PY)
-				self.back_prop(Trgt_s, PY, alpha, reg, mu)
+				self.back_prop(Trgt_s, PY, alpha, reg, mu, decay)
 			if i % 100 == 0:
 				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 
 					" Accuracy: {:1.4f}".format(np.mean(Y==self.predict(X))))
@@ -77,8 +80,7 @@ class ANN_relu(object):
 		end = time.time()
 		self.elapsed_t = (end-start)/60 # total elapsed time
 		self.cost = J # stores all cost values
-		self.Ns = Ns
-		self.Nbatch = Nbatch
+
 
 		print('\nOptimization complete')
 		print('\nElapsed time: {:.3f} min'.format(self.elapsed_t))
@@ -99,20 +101,19 @@ class ANN_relu(object):
 	def forward(self, X):
 		self.Z = [X] # this list contains all hidden unities + input/output
 		for i in range(0,len(self.M)):
-			self.Z.append(forward_step_relu(self.Z[i], self.W[i], self.b[i]))
-		self.Z.append(forward_step(self.Z[len(self.M)], self.W[len(self.M)], self.b[len(self.M)]))
-		self.Z[-1] = softmax(self.Z[-1])
+			self.Z.append(relu(self.Z[i].dot(self.W[i]) + self.b[i]))
+		self.Z.append(softmax(self.Z[len(self.M)].dot(self.W[len(self.M)]) + self.b[len(self.M)]))
 		return self.Z[-1]
 
 
 
 	# updating weights using Nesterov momentum + RMSprop!
-	def back_prop(self, Y, PY, alpha, reg, mu):
-		dZ = PY-Y
+	def back_prop(self, Y, PY, alpha, reg, mu, decay):
+		dZ = (PY-Y)/len(Y)
 		Z = self.Z[:-1]
 		Wbuf = self.W		
 		eps = 1e-10
-		decay = 0.5
+		self.decay = decay
 		for i in range(1,len(self.W)+1):
 			grad_W = (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
 			self.cache_W[-i] = decay*self.cache_W[-i] + (1-decay)*grad_W**2
@@ -137,7 +138,8 @@ class ANN_relu(object):
 
 def main():
 # number of samples for each class
-	N_class = 5000 
+	N_class = 1000 
+
 
 # generate random 2-D points 
 	X1 = np.random.randn(N_class,2)+np.array([2,2])
@@ -146,9 +148,17 @@ def main():
 	X4 = np.random.randn(N_class,2)+np.array([2,-2])
 	X = np.vstack([X1,X2,X3,X4])
 
+
 # labels associated to the input
 	Y = np.array([0]*N_class+[1]*N_class+[2]*N_class+[3]*N_class)
 	# Y = np.reshape(Y, (len(Y),1))
+
+
+# general data information for the training process
+	print('Total input samples:',X.shape[0])
+	print('Data dimension:',X.shape[1])
+	print('Number of output classes:',len(np.unique(Y)))
+	print('\n')
 
 
 # scatter plot of original labeled data
@@ -156,13 +166,12 @@ def main():
 	plt.show()
 
 
-
 # create an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
 
 # fit the model with the hyperparameters set	
-	model.fit(X, Y, alpha=1e-4, epochs=10000, reg=0, mu=.9, show_fig=True)
+	model.fit(X, Y, alpha=1e-4, epochs=5000, reg=0, mu=.9, show_fig=True)
 	
 
 # compute the model accuracy	

@@ -28,6 +28,8 @@ class ANN_relu(object):
 
 		self.N = N  # this variable will be used for normalization
 		self.D = D  # store the dimension of the training dataset
+		self.K = K  # output dimension
+		
 		# stores all hyperparameter values
 		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'epochs':epochs,
 		'Ns': Ns, 'Nbatch': Nbatch}

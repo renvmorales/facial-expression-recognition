@@ -1,6 +1,7 @@
 # This API implements the following tasks:
 #  - Multi-layer 'relu' ANN models for multiclass problems
-#  - Batch GD optimization using Nesterov momentum and AdaGrad
+#  - Batch GD optimization using plain momentum
+#  - Exponential learning rate decay
 # 
 # Implementation from scratch (mainly using Numpy).
 import numpy as np
@@ -22,7 +23,7 @@ class ANN_relu(object):
 
 
 	def fit(self, X, Y, alpha=1e-3, reg=1e-4, mu=0.8, epochs=5000, 
-		show_fig=False, Ns=100, Nbatch=10):		
+		show_fig=False, Ns=100, Nbatch=10, decay=2e-3):		
 		N, D = X.shape
 		K = len(np.unique(Y))
 
@@ -31,8 +32,8 @@ class ANN_relu(object):
 		self.K = K  # output dimension
 
 		# stores all hyperparameter values
-		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'mu':mu,
-		'epochs':epochs, 'epochs':epochs, 'Ns':Ns, 'Nbatch':Nbatch}
+		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'mu':mu, 
+		'epochs':epochs, 'Ns':Ns, 'Nbatch':Nbatch, 'decay':decay}
 		
 
 		# creates an indicator matrix for the target
@@ -44,24 +45,22 @@ class ANN_relu(object):
 		hdn_unties = [D] + self.M + [K]
 		self.W = []
 		self.b = []
-		self.v_W = []
-		self.v_b = []
-		self.cache_W = []
-		self.cache_b = []
+		self.dW = []
+		self.db = []
 		# initializes all weights randomly
 		for k in range(1,len(self.M)+2):
 			W, b = init_weights(hdn_unties[k-1], hdn_unties[k])
 			self.W.append(W)
 			self.b.append(b)
-			self.v_W.append(0)
-			self.v_b.append(0)
-			self.cache_W.append(0)
-			self.cache_b.append(0)
+			self.dW.append(0)
+			self.db.append(0)
 
 
 
 		J = np.zeros(epochs) # this array stores the cost with respect to each epoch
 		start = time.time()	# <-- starts measuring the optimization time from this point on...	
+		alpha_0 = alpha # initial alpha before decay
+		# decay = 10/epochs
 
 		for i in range(epochs):  # optimization loop
 			Xbuf, Ybuf = shuffle(X,Y)
@@ -71,6 +70,7 @@ class ANN_relu(object):
 				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
 				PY = self.forward(Xs)
 				J[i] = J[i] + 1/Nbatch*cross_entropy_multi2(Trgt_s, PY)
+				alpha = alpha_0*np.exp(-decay*i)
 				self.back_prop(Trgt_s, PY, alpha, reg, mu)
 			if i % 100 == 0:
 				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 
@@ -89,7 +89,7 @@ class ANN_relu(object):
 		# customized plot with the resulting cost values
 		if show_fig: 
 			plt.plot(J, label='Cost function J')
-			plt.title('Evolution of the Cost through a AdaGrad Nesterov batch GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
+			plt.title('Evolution of the Cost through a Momentum batch GD optimization with exponential l.r. decay       Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
 			plt.xlabel('Epochs')
 			plt.ylabel('Cost')
 			plt.legend()
@@ -107,23 +107,16 @@ class ANN_relu(object):
 
 
 
-	# updating weights using Nesterov momentum + AdaGrad!
+	# updating weights using plain momentum!
 	def back_prop(self, Y, PY, alpha, reg, mu):
 		dZ = (PY-Y)/len(Y)
 		Z = self.Z[:-1]
-		Wbuf = self.W		
-		eps = 1e-10
+		Wbuf = self.W
 		for i in range(1,len(self.W)+1):
-			grad_W = (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
-			self.cache_W[-i] += grad_W**2
-			grad_b = (dZ.sum(axis=0) + reg/self.N*self.b[-i])
-			self.cache_b[-i] += grad_b**2
-			v_Wbuf = self.v_W[-i]
-			self.v_W[-i] = mu*v_Wbuf - alpha*grad_W/(np.sqrt(self.cache_W[-i])+eps)
-			self.W[-i] += -mu*v_Wbuf + (1+mu)*self.v_W[-i]
-			v_bbuf = self.v_b[-i]
-			self.v_b[-i] = mu*v_bbuf - alpha*grad_b/(np.sqrt(self.cache_b[-i])+eps)
-			self.b[-i] += -mu*v_bbuf + (1+mu)*self.v_b[-i]
+			self.dW[-i] = mu*self.dW[-i] - alpha*(Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
+			self.W[-i] += self.dW[-i]
+			self.db[-i] = mu*self.db[-i] - alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
+			self.b[-i] += self.db[-i]			
 			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
 
@@ -131,6 +124,7 @@ class ANN_relu(object):
 	def predict(self, X):
 		PY = self.forward(X)
 		return np.argmax(PY, axis=1)
+
 
 
 
@@ -165,8 +159,7 @@ def main():
 	plt.show()
 
 
-
-# create the ANN model with the specified 4 hidden layers
+# create an ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
 
@@ -182,4 +175,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+	main()
