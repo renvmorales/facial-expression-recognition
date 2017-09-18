@@ -39,7 +39,7 @@ def main():
 
 
 # save the model object to a file
-    # joblib.dump(model, 'ANN_relu_batch2.sav')
+    joblib.dump(model, 'ANN_relu_batch2.sav')
     
 
 
