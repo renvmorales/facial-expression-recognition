@@ -141,6 +141,13 @@ def main():
 	print('\n')
 
 
+# general data information for the training process
+	print('Total input samples:',X.shape[0])
+	print('Data dimension:',X.shape[1])
+	print('Number of output classes:',len(np.unique(Y)))
+	print('\n')
+
+
 # scatter plot of original labeled data
 	plt.scatter(X[:,0],X[:,1],c=Y,s=50,alpha=0.5)
 	plt.show()
