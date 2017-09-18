@@ -6,6 +6,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ANN_relu_Multi_batch2_RMSprop import ANN_relu
+from sklearn.externals import joblib
 
 
 
@@ -28,7 +29,7 @@ def main():
 
 
 # train the model with a hyperparameters setting
-    model.fit(X, Y, alpha=1e-5, epochs=10000, reg=1e-2, mu=0.9, show_fig=True)
+    model.fit(X, Y, alpha=1e-5, epochs=5000, reg=0, mu=0.9, show_fig=True)
 
 
 # compute the prediciton/accuracy based on input data
@@ -38,7 +39,6 @@ def main():
 
 
 # save the model object to a file
-    from sklearn.externals import joblib
     joblib.dump(model, 'ANN_relu_batch2_RMSprop.sav')
     
 
