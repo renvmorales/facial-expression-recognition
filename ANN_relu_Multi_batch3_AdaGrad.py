@@ -109,14 +109,15 @@ class ANN_relu(object):
 
 	# updating weights using Nesterov momentum + AdaGrad!
 	def back_prop(self, Y, PY, alpha, reg, mu):
-		dZ = (PY-Y)/len(Y)
+		N = len(Y)
+		dZ = (PY-Y)/N
 		Z = self.Z[:-1]
 		Wbuf = self.W		
 		eps = 1e-10
 		for i in range(1,len(self.W)+1):
-			grad_W = (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
+			grad_W = (Z[-i].T.dot(dZ) + reg/(2*N)*self.W[-i])
 			self.cache_W[-i] += grad_W**2
-			grad_b = (dZ.sum(axis=0) + reg/self.N*self.b[-i])
+			grad_b = (dZ.sum(axis=0) + reg/(2*N)*self.b[-i])
 			self.cache_b[-i] += grad_b**2
 			v_Wbuf = self.v_W[-i]
 			self.v_W[-i] = mu*v_Wbuf - alpha*grad_W/(np.sqrt(self.cache_W[-i])+eps)

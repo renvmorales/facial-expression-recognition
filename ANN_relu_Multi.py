@@ -92,12 +92,13 @@ class ANN_relu(object):
 
 
 	def back_prop(self, Y, PY, alpha, reg):
-		dZ = (PY-Y)/len(Y)
+		N = len(Y)
+		dZ = (PY-Y)/N
 		Z = self.Z[:-1]
 		Wbuf = self.W
 		for i in range(1,len(self.W)+1):
-			self.W[-i] -= alpha * (Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
-			self.b[-i] -= alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
+			self.W[-i] -= alpha * (Z[-i].T.dot(dZ) + reg/(2*N)*self.W[-i])
+			self.b[-i] -= alpha * (dZ.sum(axis=0) + reg/(2*N)*self.b[-i])
 			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
 

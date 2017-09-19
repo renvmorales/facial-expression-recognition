@@ -109,13 +109,14 @@ class ANN_relu(object):
 
 	# updating weights using plain momentum!
 	def back_prop(self, Y, PY, alpha, reg, mu):
-		dZ = (PY-Y)/len(Y)
+		N = len(Y)
+		dZ = (PY-Y)/N
 		Z = self.Z[:-1]
 		Wbuf = self.W
 		for i in range(1,len(self.W)+1):
-			self.dW[-i] = mu*self.dW[-i] - alpha*(Z[-i].T.dot(dZ) + reg/self.N*self.W[-i])
+			self.dW[-i] = mu*self.dW[-i] - alpha*(Z[-i].T.dot(dZ) + reg/(2*N)*self.W[-i])
 			self.W[-i] += self.dW[-i]
-			self.db[-i] = mu*self.db[-i] - alpha * (dZ.sum(axis=0) + reg/self.N*self.b[-i])
+			self.db[-i] = mu*self.db[-i] - alpha * (dZ.sum(axis=0) + reg/(2*N)*self.b[-i])
 			self.b[-i] += self.db[-i]			
 			dZ = dZ.dot(Wbuf[-i].T) * (Z[-i]>0)
 
