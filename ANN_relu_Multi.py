@@ -73,7 +73,7 @@ class ANN_relu(object):
 		# customized plot with the resulting cost values
 		if show_fig: 
 			plt.plot(J, label='Cost function J')
-			plt.title('Evolution of the Cost through a GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
+			plt.title('Evolution of the Cost through a full GD optimization     Total runtime: {:.3f} min'.format(self.elapsed_t)+'    Final Accuracy: {:.3f}'.format(np.mean(Y==self.predict(X))))
 			plt.xlabel('Epochs')
 			plt.ylabel('Cost')
 			plt.legend()

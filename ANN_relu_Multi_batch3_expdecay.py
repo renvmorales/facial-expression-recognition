@@ -23,17 +23,19 @@ class ANN_relu(object):
 
 
 	def fit(self, X, Y, alpha=1e-3, reg=1e-4, mu=0.8, epochs=5000, 
-		show_fig=False, Ns=100, Nbatch=10, decay=2e-3):
+		show_fig=False, Nbatch=10, decay=2e-3):
 		N, D = X.shape
 		K = len(np.unique(Y))
+		batch_sz = int(N/Nbatch)  # batch size
 
 		self.N = N  # this variable will be used for normalization
 		self.D = D  # store the dimension of the training dataset
 		self.K = K  # output dimension
+		self.batch_sz = batch_sz
 
 		# stores all hyperparameter values
 		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'mu':mu, 
-		'epochs':epochs, 'Ns':Ns, 'Nbatch':Nbatch, 'decay':decay}
+		'epochs':epochs, 'Nbatch':Nbatch, 'decay':decay}
 		
 
 		# creates an indicator matrix for the target
@@ -57,24 +59,22 @@ class ANN_relu(object):
 
 
 
-		J = np.zeros(epochs) # this array stores the cost with respect to each epoch
+		J = [] # this list stores the cost with respect to each epoch
 		start = time.time()	# <-- starts measuring the optimization time from this point on...	
 		alpha_0 = alpha # initial alpha before decay
-		decay = 10/epochs
 
-		for i in range(epochs):  # optimization loop
-			Xbuf, Ybuf = shuffle(X,Y)
+		for i in range(int(epochs/Nbatch)):  # optimization loop
+			Xbuf, Trgtbuf = shuffle(X, Trgt)
 			for j in range(int(Nbatch)):
-				Xs = Xbuf[(j*Ns):(j*Ns+Ns),:] # input batch sample
-				Trgt_s = np.zeros((Ns,K))
-				Trgt_s[np.arange(Ns), Ybuf[(j*Ns):(j*Ns+Ns)].astype(np.int32)] = 1
-				PY = self.forward(Xs)
-				J[i] = J[i] + 1/Nbatch*cross_entropy_multi2(Trgt_s, PY)
+				X_b = Xbuf[(j*batch_sz):(j*batch_sz+batch_sz),:] # input batch sample
+				Trgt_b = Trgtbuf[(j*batch_sz):(j*batch_sz+batch_sz),:] # output batch sample
+				PY = self.forward(X_b)
+				J.append(cross_entropy_multi2(Trgt_b, PY))
 				alpha = alpha_0*np.exp(-decay*i)
-				self.back_prop(Trgt_s, PY, alpha, reg, mu)
-			if i % 100 == 0:
-				print('Epoch:',i,' Cost: {:.4f}'.format(J[i]), 
-					" Accuracy: {:1.4f}".format(np.mean(Y==self.predict(X))))
+				self.back_prop(Trgt_b, PY, alpha, reg, mu)
+				if (i*Nbatch+j+1) % 100 == 0:
+					print("Epoch: %d  Cost: %.4f  Accuracy: %.4f" % (i*Nbatch+j+1, J[-1], 
+						np.mean(Y==self.predict(X))) )
 
 
 		end = time.time()
@@ -161,12 +161,13 @@ def main():
 	plt.show()
 
 
-# create an ANN model with the specified 4 hidden layers
+# create the ANN model with the specified 4 hidden layers
 	model = ANN_relu([10,10,10,10])
 
 
 # fit the model with the hyperparameters set	
-	model.fit(X, Y, alpha=1e-3, epochs=5000, reg=0, mu=.9, show_fig=True)
+	model.fit(X, Y, alpha=1e-3, epochs=5000, reg=0.01, mu=.9, Nbatch=20,
+		show_fig=True)
 	
 
 # compute the model accuracy
