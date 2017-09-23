@@ -30,7 +30,8 @@ def main():
 
 
 # train the model with a hyperparameters setting
-    model.fit(X, Y, alpha=1e-3, epochs=5000, reg=0, mu=0.95, show_fig=True)
+    model.fit(X, Y, alpha=1e-2, epochs=5000, reg=0, mu=0.3, Nbatch=10,
+        decay=5e-3, show_fig=True)
 
 
 # compute the prediciton/accuracy based on input data
