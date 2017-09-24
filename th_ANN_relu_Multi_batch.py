@@ -25,17 +25,19 @@ class ANN_relu(object):
 
 
 	def fit(self, X, Y, alpha=1e-3, reg=1e-4, epochs=5000, show_fig=False,
-		Ns=100, Nbatch=10):
+		Nbatch=10):
 		N, D = X.shape
 		K = len(np.unique(Y))
+		batch_sz = int(N/Nbatch)  # batch size
 
 		self.N = N  # this variable will be used for normalization
 		self.D = D  # store the dimension of the training dataset
 		self.K = K  # output dimension
-		
+		self.batch_sz = batch_sz
+
 		# stores all hyperparameter values
 		self.hyperparameters = {'alpha':alpha, 'reg':reg, 'epochs':epochs,
-		'Ns': Ns, 'Nbatch': Nbatch}
+		'Nbatch': Nbatch}
 
 
 		# creates an indicator matrix for the target
@@ -76,7 +78,9 @@ class ANN_relu(object):
 
 
 		# symbolic expression for the cost function
-		J = -1/Ns*(thT*T.log(thY)).sum()
+		J = T.mean(T.nnet.categorical_crossentropy(thY, thT))
+		# J = -1/batch_sz*T.sum((T.log(thY[T.arange(batch_sz), 
+		# 	T.argmax(thT, axis=1)])))
 
 
 		# symbolic expression for computing a prediction
@@ -87,8 +91,8 @@ class ANN_relu(object):
 		updt_W = []
 		updt_b = []
 		for i in range(len(W)):
-			updt_W.append(W[i] - alpha*(T.grad(J, W[i]) + reg/(2*Ns)*W[i]))
-			updt_b.append(b[i] - alpha*(T.grad(J, b[i]) + reg/(2*Ns)*b[i]))
+			updt_W.append(W[i] - alpha*(T.grad(J, W[i]) + reg/(2*batch_sz)*W[i]))
+			updt_b.append(b[i] - alpha*(T.grad(J, b[i]) + reg/(2*batch_sz)*b[i]))
 
 
 		# generate a list of tuples with weights and the update expression
@@ -125,20 +129,20 @@ class ANN_relu(object):
 
 
 		
-		cost=np.zeros(epochs)
+		cost=[]
 		start = time.time()	# <-- starts measuring the optimization time from this point on...			
 
 		# optimization loop
-		for i in range(epochs):
-			Xbuf, Trgtbuf = shuffle(X,Trgt)
+		for i in range(int(epochs/Nbatch)):
+			Xbuf, Trgtbuf = shuffle(X, Trgt)
 			for j in range(int(Nbatch)):
-				Xs = Xbuf[(j*Ns):(j*Ns+Ns),:] # input batch sample
-				Trgt_s = Trgtbuf[(j*Ns):(j*Ns+Ns),:]
-				cost_val, prediction_val = train(Xs, Trgt_s)
+				X_b = Xbuf[(j*batch_sz):(j*batch_sz+batch_sz),:] # input batch sample
+				Trgt_b = Trgtbuf[(j*batch_sz):(j*batch_sz+batch_sz),:] # output batch sample
+				cost_val, prediction_val = train(X_b, Trgt_b)
 				accur = np.mean(self.predict(X)==Y)
-				cost[i] = cost[i] + 1/Nbatch*cost_val
-			if i % 100 == 0:
-				print("Epoch: %d  Cost: %.4f  Accuracy: %.4f" % (i, cost_val, accur))
+				cost.append(cost_val)
+				if (i*Nbatch+j+1) % 100 == 0:
+					print("Epoch: %d  Cost: %.4f  Accuracy: %.4f" % (i*Nbatch+j+1, cost_val, accur))
 
 
 		end = time.time()
@@ -204,7 +208,8 @@ def main():
 
 
 # fit the model with the hyperparameters set	
-	model.fit(X, Y, alpha=1e-2, epochs=5000, reg=0.01, show_fig=True)
+	model.fit(X, Y, alpha=1e-2, epochs=5000, reg=0.01, Nbatch=20, 
+		show_fig=True)
 
 
 
