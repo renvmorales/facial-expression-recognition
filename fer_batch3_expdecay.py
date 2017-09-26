@@ -12,7 +12,7 @@ from ANN_relu_Multi_batch3_expdecay import ANN_relu
 
 
 def main():
-    npzfile = np.load('fer2train5k.npz')
+    npzfile = np.load('large_files/fer2train5k.npz')
     X = npzfile['Xtrain']
     Y = npzfile['Ytrain']
 
@@ -42,7 +42,7 @@ def main():
 
 # save the model object to a file
     from sklearn.externals import joblib
-    joblib.dump(model, 'ANN_relu_batch3_expdecay.sav')
+    joblib.dump(model, 'large_files/ANN_relu_batch3_expdecay.sav')
     
 
 

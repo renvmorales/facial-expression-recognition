@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 
 def main():
 # load test data
-	npzfile = np.load('fer2test1k.npz')
+	npzfile = np.load('large_files/fer2test1k.npz')
 	X = npzfile['Xtest']
 	Y = npzfile['Ytest']
 
@@ -22,7 +22,7 @@ def main():
 
 	from ANN_relu_Multi_batch3 import ANN_relu
 # load a Nesterov momentum batch GD ANN_relu trained model
-	model1 = joblib.load('ANN_relu_batch3.sav')
+	model1 = joblib.load('large_files/ANN_relu_batch3.sav')
 	cost1 = model1.cost
 	print('Model 1 training time: {:.2f} min'.format(model1.elapsed_t), 
 		'   Test accuracy: {:.3f}'.format(np.mean(Y==model1.predict(X))))
@@ -31,7 +31,7 @@ def main():
 	from ANN_relu_Multi_batch3_expdecay import ANN_relu
 # load a Nesterov momentum batch GD withe exponential l.r. decay
 # ANN_relu trained model
-	model2 = joblib.load('ANN_relu_batch3_expdecay.sav')
+	model2 = joblib.load('large_files/ANN_relu_batch3_expdecay.sav')
 	cost2 = model2.cost
 	print('Model 2 training time: {:.2f} min'.format(model2.elapsed_t), 
 		'   Test accuracy: {:.3f}'.format(np.mean(Y==model2.predict(X))))
@@ -40,7 +40,7 @@ def main():
 	from ANN_relu_Multi_batch3_AdaGrad import ANN_relu
 # load a Nesterov momentum batch GD with AdaGrad ANN_relu 
 # trained model
-	model3 = joblib.load('ANN_relu_batch3_AdaGrad.sav')
+	model3 = joblib.load('large_files/ANN_relu_batch3_AdaGrad.sav')
 	cost3 = model3.cost
 	print('Model 3 training time: {:.2f} min'.format(model3.elapsed_t), 
 		'   Test accuracy: {:.3f}'.format(np.mean(Y==model3.predict(X))))
@@ -49,7 +49,7 @@ def main():
 	from ANN_relu_Multi_batch3_RMSprop import ANN_relu
 # loade a Nesterov momentum batch GD with RMSprop ANN_relu trained
 # model
-	model4 = joblib.load('ANN_relu_batch3_RMSprop.sav')
+	model4 = joblib.load('large_files/ANN_relu_batch3_RMSprop.sav')
 	cost4 = model4.cost
 	print('Model 4 training time: {:.2f} min'.format(model4.elapsed_t), 
 		'   Test accuracy: {:.3f}'.format(np.mean(Y==model4.predict(X))))

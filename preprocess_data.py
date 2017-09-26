@@ -12,7 +12,7 @@ from sklearn.utils import shuffle
 
 
 
-def getData(Ns, balance_ones=True):
+def getData(Ns=1000, balance_ones=True):
 	# images are 48x48 = 2304 size vectors
 	# N = 35887
 	Y = []
@@ -20,7 +20,7 @@ def getData(Ns, balance_ones=True):
 	first = True
 
 #  data available at https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data
-	for line in open('fer2013.csv','r'):
+	for line in open('large_files/fer2013.csv','r'):
 		if first:
 			first = False
 		else:
@@ -63,8 +63,8 @@ def main():
 	print('\n')
 	
 	# save variables to a file
-	np.savez('fer2train5k', Xtrain=Xtrain, Ytrain=Ytrain)
-	np.savez('fer2test1k', Xtest=Xtest, Ytest=Ytest)
+	np.savez('large_files/fer2train5k', Xtrain=Xtrain, Ytrain=Ytrain)
+	np.savez('large_files/fer2test1k', Xtest=Xtest, Ytest=Ytest)
 
 
 

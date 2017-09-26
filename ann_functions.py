@@ -8,12 +8,11 @@ import numpy as np
 
 # initializes with random weights
 def init_weights(R, S):
-	# W = np.random.rand(R,S)
-	# b = np.random.rand(S)
 	W = np.random.randn(R,S)/np.sqrt(R+S) # Xavier initialization
+	b = np.random.rand(S)
 	# b = np.zeros(S)
-	b = np.random.randn(S)
-	return W.astype(np.float32), b.astype(np.float32)
+	return W, b
+	# return W.astype(np.float32), b.astype(np.float32)
 
 
 

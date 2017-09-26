@@ -12,7 +12,7 @@ from sklearn.externals import joblib
 
 
 def main():
-    npzfile = np.load('fer2train5k.npz')
+    npzfile = np.load('large_files/fer2train5k.npz')
     X = npzfile['Xtrain']
     Y = npzfile['Ytrain']
     
@@ -40,7 +40,7 @@ def main():
 
 
 # save the model object to a file
-    joblib.dump(model, 'ANN_relu_batch2.sav')
+    joblib.dump(model, 'large_files/ANN_relu_batch2.sav')
     
 
 
